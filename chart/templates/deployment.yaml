@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deploy
+  labels:
+    app: nginx
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+
+    spec:
+      containers:
+        - name: nginx
+          image: {{ .Values.containers.image_nginx }}
+          ports:
+            - containerPort: 80
+          startupProbe:
+              httpGet:
+                path: /
+                port: 80
+              initialDelaySeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - ls
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+        - name: apache
+          image: {{ .Values.containers.image_apache }}
+          ports:
+            - containerPort: 8080
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  labels:
+    env: dep
+spec:
+  selector:
+    app: nginx
+  type: NodePort
+  ports:
+    - name: nginx-listener
+      protocol: TCP
+      port: 443
+      targetPort: 443
+      nodePort: 30080

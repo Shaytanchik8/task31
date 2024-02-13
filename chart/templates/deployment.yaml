@@ -20,6 +20,11 @@ spec:
           image: {{ .Values.containers.image_nginx }}
           ports:
             - containerPort: 80
+          volumeMounts:
+            - name: html-volume
+              mountPath: /var/www/html/index.html
+              subPath: index.html
+
           startupProbe:
               httpGet:
                 path: /
@@ -41,6 +46,10 @@ spec:
           image: {{ .Values.containers.image_apache }}
           ports:
             - containerPort: 8080
+      volumes:
+        - name: html-volume
+          configMap:
+            name: content
 
 
 ---
